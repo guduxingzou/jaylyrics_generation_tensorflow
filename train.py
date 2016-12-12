@@ -63,7 +63,7 @@ class Trainer():
         parser.add_argument('--batch_size', type=int, default=64,
                        help='set minibatch size')
 
-        parser.add_argument('--seq_length', type=int, default=32,
+        parser.add_argument('--seq_length', type=int, default=16,
                        help='set RNN sequence length')
 
         parser.add_argument('--num_epochs', type=int, default=10000,
@@ -72,10 +72,10 @@ class Trainer():
         parser.add_argument('--save_every', type=int, default=1000,
                        help='set save frequency while training')
 
-        parser.add_argument('--grad_clip', type=float, default=20.,
+        parser.add_argument('--grad_clip', type=float, default=5.,
                        help='set clip gradients when back propagation')
 
-        parser.add_argument('--learning_rate', type=float, default=0.001,
+        parser.add_argument('--learning_rate', type=float, default=0.00005,
                        help='set learning rate')
 
         parser.add_argument('--decay_rate', type=float, default=0.98,

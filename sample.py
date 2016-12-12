@@ -22,7 +22,7 @@ def main():
                        help='number of words to sample')
     parser.add_argument('--start', default=u'如果',
                        help='prime text')
-    parser.add_argument('--sample', type=str, default='weighted',
+    parser.add_argument('--sample', type=str, default='combined',
                        help='three choices:argmax,weighted,combined')
 
     args = parser.parse_args()
