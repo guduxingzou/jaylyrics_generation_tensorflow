@@ -1,6 +1,5 @@
 # jaylyrics_generation_tensorflow
-使用基于LSTM的swq2seq模型并结合注意力机制来生成周杰伦歌词
-这里是我的微信blog文章:http://mp.weixin.qq.com/s?src=3&timestamp=1481517743&ver=1&signature=pC-kDorYW6rzwp4rPW1uXbHKM4T5SakALVkEkPGsloGPNTL9Tu3Xep1OviT3COwPzIwiIAFcYt56TOemYGID1eFE20mWI7H8qxvHstSYPRlkjUyUI297Nl6vYvDJswIUmkN-SUJ5Cok-92Rpvfq96av0cxrZeg8uW6W39RcEaCs=
+使用基于LSTM的swq2seq模型并结合注意力机制来生成周杰伦歌词，详情请关注我的微信公众号：deeplearningdigest
 
 ## 训练
 `python train.py `
