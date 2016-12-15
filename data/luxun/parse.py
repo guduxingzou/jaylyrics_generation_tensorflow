@@ -20,9 +20,13 @@ with codecs.open('lx.txt','r',encoding='utf-8') as f:
             reg = re.compile(ur"[^\u4e00-\u9fa5\s，。]")
             c = reg.sub('',unicode(c))
 	    c = c.strip()
+	    c = c.replace('  ',' ')
 	    if len(c)!=0:
 	        c = c.replace(' ',u'，')
-	        new.append(c)
+		if not c.endswith(u'。'):
+	            new.append(c+u'。')
+		else:
+	            new.append(c)
 
 with codecs.open('new.txt','w','utf-8') as f:
     for x in new:

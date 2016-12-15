@@ -83,10 +83,10 @@ class Model():
                 args.grad_clip)
         optimizer = tf.train.AdamOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, self.var_trainable_op))
-	self.initial_op = tf.initialize_all_variables()
-	self.saver = tf.train.Saver(tf.all_variables(),max_to_keep=5,keep_checkpoint_every_n_hours=1)
+	self.initial_op = tf.global_variables_initializer()
 	self.logfile = args.log_dir+str(datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')+'.txt').replace(' ','').replace('/','')
-	self.var_op = tf.all_variables()
+	self.var_op = tf.global_variables()
+	self.saver = tf.train.Saver(self.var_op,max_to_keep=5,keep_checkpoint_every_n_hours=1)
 
     def sample(self, sess, words, vocab, num=200, start=u'我们', sampling_type=1):
 
@@ -99,8 +99,7 @@ class Model():
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
 	    else:
 		# TO BE UPDATED
-		attention_states = sess.run(build_weight([self.args.batch_size,self.attn_length,self.attn_size],name='attention_states')) 
-                feed = {self.input_data: x, self.initial_state:state,self.attention_states:attention_states}
+                feed = {self.input_data: x, self.initial_state:state}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
 	    
         ret = start

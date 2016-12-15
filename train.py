@@ -33,7 +33,7 @@ class Trainer():
     def __init__(self):
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--data_dir', default='./data/luxun/',
+        parser.add_argument('--data_dir', default='./data/jay/',
                        help='set the data directory which contains input.txt')
 
         parser.add_argument('--save_dir', default='./save/',
@@ -42,13 +42,13 @@ class Trainer():
         parser.add_argument('--log_dir', default='./log/',
                        help='set directory to store checkpointed models')
 
-        parser.add_argument('--rnn_size', type=int, default=128,
+        parser.add_argument('--rnn_size', type=int, default=256,
                        help='set size of RNN hidden state')
 
         parser.add_argument('--embedding_size', type=int, default=128,
                        help='set size of word embedding')
 
-        parser.add_argument('--num_layers', type=int, default=2,
+        parser.add_argument('--num_layers', type=int, default=1,
                        help='set number of layers in the RNN')
 
         parser.add_argument('--model', default='seq2seq_rnn',
@@ -63,7 +63,7 @@ class Trainer():
         parser.add_argument('--batch_size', type=int, default=64,
                        help='set minibatch size')
 
-        parser.add_argument('--seq_length', type=int, default=16,
+        parser.add_argument('--seq_length', type=int, default=32,
                        help='set RNN sequence length')
 
         parser.add_argument('--num_epochs', type=int, default=10000,
@@ -72,17 +72,20 @@ class Trainer():
         parser.add_argument('--save_every', type=int, default=1000,
                        help='set save frequency while training')
 
-        parser.add_argument('--grad_clip', type=float, default=5.,
+        parser.add_argument('--grad_clip', type=float, default=200.,
                        help='set clip gradients when back propagation')
 
-        parser.add_argument('--learning_rate', type=float, default=0.00005,
+        parser.add_argument('--learning_rate', type=float, default=0.01,
                        help='set learning rate')
 
-        parser.add_argument('--decay_rate', type=float, default=0.98,
+        parser.add_argument('--decay_rate', type=float, default=0.95,
                        help='set decay rate for rmsprop')                       
 
         parser.add_argument('--keep', type=bool, default=True,
 		       help='init from trained model')
+
+	parser.add_argument('--pretrained', type=bool, default=True,
+		       help='init from pre-trained model')
 
         args = parser.parse_args()
         self.train(args)
@@ -90,11 +93,21 @@ class Trainer():
     def train(self,args):
 	''' import data, train model, save model
 	'''
-        text_parser = TextParser(args.data_dir, args.batch_size, args.seq_length)
+	if args.attention is True:
+	    print('attention mode')
+	    args.save_dir = './save/atten/'
+	    args.log_dir = './log/atten/'
+        text_parser = TextParser(args)
         args.vocab_size = text_parser.vocab_size
-        ckpt = tf.train.get_checkpoint_state(args.save_dir)
-    
-        if args.keep is True:
+	if args.pretrained is True:
+	    if args.keep is False:
+		raise ValueError('when pre-trained is True, keep must be true!')
+	    print("pretrained and keep mode...")
+            ckpt = tf.train.get_checkpoint_state("./data/pre-trained/")
+	else:
+	    ckpt = tf.train.get_checkpoint_state(args.save_dir)
+	    
+        if args.keep is True and args.pretrained is False:
             # check if all necessary files exist 
 	    if os.path.exists(os.path.join(args.save_dir,'config.pkl')) and \
 		os.path.exists(os.path.join(args.save_dir,'words_vocab.pkl')) and \
@@ -102,6 +115,18 @@ class Trainer():
                 with open(os.path.join(args.save_dir, 'config.pkl'), 'rb') as f:
                     saved_model_args = cPickle.load(f)
                 with open(os.path.join(args.save_dir, 'words_vocab.pkl'), 'rb') as f:
+                    saved_words, saved_vocab = cPickle.load(f)
+	    else:
+		raise ValueError('configuration doesn"t exist!')
+
+	if args.keep is True and args.pretrained is True:
+            # check if all necessary files exist 
+	    if os.path.exists(os.path.join("./data/pre-trained/",'config.pkl')) and \
+		os.path.exists(os.path.join("./data/pre-trained/",'words_vocab.pkl')) and \
+		ckpt and ckpt.model_checkpoint_path:
+                with open(os.path.join("./data/pre-trained/", 'config.pkl'), 'rb') as f:
+                    saved_model_args = cPickle.load(f)
+                with open(os.path.join("./data/pre-trained/", 'words_vocab.pkl'), 'rb') as f:
                     saved_words, saved_vocab = cPickle.load(f)
 	    else:
 		raise ValueError('configuration doesn"t exist!')
@@ -132,8 +157,8 @@ class Trainer():
 
             for e in range(args.num_epochs):
                 start = time.time()
-                #sess.run(tf.assign(model.lr, args.learning_rate * (args.decay_rate ** e)))
-                sess.run(tf.assign(model.lr, args.learning_rate))
+                sess.run(tf.assign(model.lr, args.learning_rate * (args.decay_rate ** e)))
+                #sess.run(tf.assign(model.lr, args.learning_rate))
 	        model.initial_state = tf.convert_to_tensor(model.initial_state) 
                 state = model.initial_state.eval()
 		total_loss = []
@@ -147,7 +172,7 @@ class Trainer():
                                 .format(e * text_parser.num_batches + b, \
                                 args.num_epochs * text_parser.num_batches, \
                                 e, train_loss))
-                    if (e*text_parser.num_batches+b)%args.save_every==0 or (e==args.num_epochs-1 and b==text_parser.num_batches-1): 
+                    if (e*text_parser.num_batches+b)%args.save_every==0 or (b==text_parser.num_batches-1): 
                         checkpoint_path = os.path.join(args.save_dir, 'model.ckpt')
                         model.saver.save(sess, checkpoint_path, global_step = e)
                         print("model has been saved in:"+str(checkpoint_path))

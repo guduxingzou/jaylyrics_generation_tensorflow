@@ -23,21 +23,27 @@ import collections
 from six.moves import cPickle
 
 class TextParser():
-    def __init__(self, data_dir='./data/', batch_size=8, seq_length=10):
+    def __init__(self, args):
 	''' Initialize the basic directory, batch_size and sequence length
 	'''
-        self.data_dir = data_dir
-        self.batch_size = batch_size
-        self.seq_length = seq_length
-        self.input_file = os.path.join(data_dir, "new.txt")
-        self.vocab_file = os.path.join(data_dir, "vocab.pkl")
-        self.context_file = os.path.join(data_dir, "context.npy")
+        self.data_dir = args.data_dir
+        self.batch_size = args.batch_size
+        self.seq_length = args.seq_length
+        self.input_file = os.path.join(self.data_dir, "new.txt")
+	if args.pretrained is False:
+            self.vocab_file = os.path.join(self.data_dir, "vocab.pkl")
+            self.context_file = os.path.join(self.data_dir, "context.npy")
+	else:
+	    self.vocab_file = os.path.join("./data/pre-trained/", "vocab.pkl")
+            self.context_file = os.path.join("./data/pre-trained/", "context.npy")
 
-
-        print("building dataset...")
-        self.build_dataset()
-        print("loading dataset...")
-        self.load_dataset()
+	if args.keep is False:
+            print("keep:False, building dataset...")
+            self.build_dataset()
+	else:        
+	    print("keep:True, loading dataset...")
+            self.load_dataset()
+	print("initialize mini-batch dataset...")
         self.init_batches()
 
     def build_dataset(self):
@@ -55,6 +61,7 @@ class TextParser():
             cPickle.dump(self.vocab_list, f)
         self.context = np.array(list(map(self.vocab_dict.get, data)))
         np.save(self.context_file, self.context)
+	self.num_batches = int(self.context.size / (self.batch_size * self.seq_length))
 
 
     def load_dataset(self):
@@ -63,8 +70,14 @@ class TextParser():
         with open(self.vocab_file, 'rb') as f:
             self.vocab_list = cPickle.load(f)
         self.vocab_size = len(self.vocab_list)
+	print('size of dictionary:'+str(self.vocab_size))
         self.vocab_dict = dict(zip(self.vocab_list, range(len(self.vocab_list))))
-        self.context = np.load(self.context_file)
+        with codecs.open(self.input_file, "r",encoding='utf-8') as f:
+            data = f.read()
+	print data[-100:]
+
+	self.context = np.array(list(map(self.vocab_dict.get, data)))
+        np.save(self.context_file, self.context)
         self.num_batches = int(self.context.size / (self.batch_size * self.seq_length))
 
     def init_batches(self):
