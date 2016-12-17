@@ -1,6 +1,6 @@
 # jaylyrics_generation_tensorflow
 使用基于LSTM的swq2seq模型并结合注意力机制来生成周杰伦歌词，加入了十多部中文小说以及散文歌词等进行了语言模型的预训练，然后再使用周杰伦的歌词来训练模型进而实现抽样再生。详情请关注我的微信公众号：deeplearningdigest
-
+在此基础之上进行了修改，增加了对Windows的支持，Python3.5下运行成功。
 ## 训练
 `python train.py `
 
