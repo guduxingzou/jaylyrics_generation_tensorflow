@@ -1,4 +1,6 @@
 # jaylyrics_generation_tensorflow
+
+此项目fork自https://github.com/zzw922cn/jaylyrics_generation_tensorflow ，感谢zzw922cn的奉献！
 使用基于LSTM的swq2seq模型并结合注意力机制来生成周杰伦歌词，加入了十多部中文小说以及散文歌词等进行了语言模型的预训练，然后再使用周杰伦的歌词来训练模型进而实现抽样再生。详情请关注我的微信公众号：deeplearningdigest
 在此基础之上进行了修改，增加了对Windows的支持，Python3.5下运行成功。
 ## 训练
@@ -27,5 +29,6 @@
 反方向左右都逢源不恐 只能永远读着对白
 ```
 
+由于tf在Windows上只支持py35,所以如果已经安装了py27但又不想重新安装的朋友，可以通过http://blog.csdn.net/infin1te/article/details/50445217 方法，安装py35,然后从http://www.lfd.uci.edu/~gohlke/pythonlibs/ 下载tf的whl文件安装。
 
-
+我的这个是用了中医中的方剂进行训练的，后续再加入新的思想吧！
