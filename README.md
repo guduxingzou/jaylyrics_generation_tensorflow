@@ -30,5 +30,7 @@
 ```
 
 由于tf在Windows上只支持py35,所以如果已经安装了py27但又不想重新安装的朋友，可以通过http://blog.csdn.net/infin1te/article/details/50445217 方法，安装py35,然后从http://www.lfd.uci.edu/~gohlke/pythonlibs/ 下载tf的whl文件安装。
+此项目，目前没有使用pre-trained,大家可以自己更改就行了！
+
 
 我的这个是用了中医中的方剂进行训练的，后续再加入新的思想吧！
