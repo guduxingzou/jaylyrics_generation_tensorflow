@@ -1,7 +1,6 @@
 # -*-  coding:utf-8 -*-
 ''' model for automatic speech recognition implemented in Tensorflow
 author:
-
       iiiiiiiiiiii            iiiiiiiiiiii         !!!!!!!             !!!!!!    
       #        ###            #        ###           ###        I#        #:     
       #      ###              #      I##;             ##;       ##       ##      
@@ -33,7 +32,7 @@ class Trainer():
     def __init__(self):
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--data_dir', default='./data/jay/',
+        parser.add_argument('--data_dir', default='./data/fangji/',
                        help='set the data directory which contains input.txt')
 
         parser.add_argument('--save_dir', default='./save/',
@@ -60,13 +59,13 @@ class Trainer():
         parser.add_argument('--attention', type=bool, default=False,
                        help='set attention mode or not')
 
-        parser.add_argument('--batch_size', type=int, default=64,
+        parser.add_argument('--batch_size', type=int, default=256,#64
                        help='set minibatch size')
 
         parser.add_argument('--seq_length', type=int, default=32,
                        help='set RNN sequence length')
 
-        parser.add_argument('--num_epochs', type=int, default=10000,
+        parser.add_argument('--num_epochs', type=int, default=800,
                        help='set number of epochs')
 
         parser.add_argument('--save_every', type=int, default=1000,
@@ -81,67 +80,67 @@ class Trainer():
         parser.add_argument('--decay_rate', type=float, default=0.95,
                        help='set decay rate for rmsprop')                       
 
-        parser.add_argument('--keep', type=bool, default=True,
-		       help='init from trained model')
-
-	parser.add_argument('--pretrained', type=bool, default=True,
-		       help='init from pre-trained model')
+        parser.add_argument('--keep', type=bool, default=False,
+                       help='init from trained model')
+        parser.add_argument('--pretrained', type=bool, default=False,
+                       help='init from pre-trained model')
 
         args = parser.parse_args()
         self.train(args)
 
     def train(self,args):
-	''' import data, train model, save model
-	'''
-	if args.attention is True:
-	    print('attention mode')
-	    args.save_dir = './save/atten/'
-	    args.log_dir = './log/atten/'
+        ''' import data, train model, save model
+        '''
+        if args.attention is True:
+            print('attention mode')
+            args.save_dir = './save/atten/'
+            args.log_dir = './log/atten/'
         text_parser = TextParser(args)
         args.vocab_size = text_parser.vocab_size
-	if args.pretrained is True:
-	    if args.keep is False:
-		raise ValueError('when pre-trained is True, keep must be true!')
-	    print("pretrained and keep mode...")
+        if args.pretrained is True:
+            if args.keep is False:
+                raise ValueError('when pre-trained is True, keep must be true!')
+            print("pretrained and keep mode...")
             ckpt = tf.train.get_checkpoint_state("./data/pre-trained/")
-	else:
-	    ckpt = tf.train.get_checkpoint_state(args.save_dir)
-	    
+        else:
+            ckpt = tf.train.get_checkpoint_state(args.save_dir)
+            
         if args.keep is True and args.pretrained is False:
             # check if all necessary files exist 
-	    if os.path.exists(os.path.join(args.save_dir,'config.pkl')) and \
-		os.path.exists(os.path.join(args.save_dir,'words_vocab.pkl')) and \
-		ckpt and ckpt.model_checkpoint_path:
+            if os.path.exists(os.path.join(args.save_dir,'config.pkl')) and \
+                os.path.exists(os.path.join(args.save_dir,'words_vocab.pkl')) and \
+                ckpt and ckpt.model_checkpoint_path:
                 with open(os.path.join(args.save_dir, 'config.pkl'), 'rb') as f:
                     saved_model_args = cPickle.load(f)
                 with open(os.path.join(args.save_dir, 'words_vocab.pkl'), 'rb') as f:
                     saved_words, saved_vocab = cPickle.load(f)
-	    else:
-		raise ValueError('configuration doesn"t exist!')
+            else:
+                raise ValueError('configuration doesn"t exist!')
 
-	if args.keep is True and args.pretrained is True:
+        if args.keep is True and args.pretrained is True:
             # check if all necessary files exist 
-	    if os.path.exists(os.path.join("./data/pre-trained/",'config.pkl')) and \
-		os.path.exists(os.path.join("./data/pre-trained/",'words_vocab.pkl')) and \
-		ckpt and ckpt.model_checkpoint_path:
+            if os.path.exists(os.path.join("./data/pre-trained/",'config.pkl')) and \
+                os.path.exists(os.path.join("./data/pre-trained/",'words_vocab.pkl')) and \
+                ckpt and ckpt.model_checkpoint_path:
                 with open(os.path.join("./data/pre-trained/", 'config.pkl'), 'rb') as f:
-                    saved_model_args = cPickle.load(f)
+                    #saved_model_args = cPickle.load(f)
+                    pass
                 with open(os.path.join("./data/pre-trained/", 'words_vocab.pkl'), 'rb') as f:
                     saved_words, saved_vocab = cPickle.load(f)
-	    else:
-		raise ValueError('configuration doesn"t exist!')
+            else:
+                raise ValueError('configuration doesn"t exist!')
 
-	if args.model == 'seq2seq_rnn':
+        if args.model == 'seq2seq_rnn':
             model = Model_rnn(args)
-	else:
-	    # TO ADD OTHER MODEL
-	    pass
-	trainable_num_params = count_params(model,mode='trainable')
-	all_num_params = count_params(model,mode='all')
-	args.num_trainable_params = trainable_num_params
-	args.num_all_params = all_num_params
-	print(args.num_trainable_params) 
-	print(args.num_all_params) 
+        else:
+            # TO ADD OTHER MODEL
+            pass
+        trainable_num_params = count_params(model,mode='trainable')
+        all_num_params = count_params(model,mode='all')
+        args.num_trainable_params = trainable_num_params
+        args.num_all_params = all_num_params
+        print(args.num_trainable_params) 
+        print(args.num_all_params) 
         with open(os.path.join(args.save_dir, 'config.pkl'), 'wb') as f:
             cPickle.dump(args, f)
         with open(os.path.join(args.save_dir, 'words_vocab.pkl'), 'wb') as f:
@@ -149,25 +148,27 @@ class Trainer():
 
         with tf.Session() as sess:
             if args.keep is True:
-	        print('Restoring')
+                print('Restoring')
                 model.saver.restore(sess, ckpt.model_checkpoint_path)
-	    else:
-		print('Initializing')
-    	        sess.run(model.initial_op)
+            else:
+                print('Initializing')
+                sess.run(model.initial_op)
 
             for e in range(args.num_epochs):
                 start = time.time()
                 sess.run(tf.assign(model.lr, args.learning_rate * (args.decay_rate ** e)))
                 #sess.run(tf.assign(model.lr, args.learning_rate))
-	        model.initial_state = tf.convert_to_tensor(model.initial_state) 
+                model.initial_state = tf.convert_to_tensor(model.initial_state) 
                 state = model.initial_state.eval()
-		total_loss = []
+                total_loss = []
                 for b in range(text_parser.num_batches):
                     x, y = text_parser.next_batch()
-		    print('flag')
+                    #print(x)
+                    #print(y)
+                    print('flag')
                     feed = {model.input_data: x, model.targets: y, model.initial_state: state}
                     train_loss, state, _ = sess.run([model.cost, model.final_state, model.train_op], feed)
-		    total_loss.append(train_loss)
+                    total_loss.append(train_loss)
                     print("{}/{} (epoch {}), train_loss = {:.3f}" \
                                 .format(e * text_parser.num_batches + b, \
                                 args.num_epochs * text_parser.num_batches, \
@@ -177,11 +178,11 @@ class Trainer():
                         model.saver.save(sess, checkpoint_path, global_step = e)
                         print("model has been saved in:"+str(checkpoint_path))
                 end = time.time()
-		delta_time = end - start
-		ave_loss = np.array(total_loss).mean()
-		logging(model,ave_loss,e,delta_time,mode='train')
-		if ave_loss < 0.5:
-		    break
+                delta_time = end - start
+                ave_loss = np.array(total_loss).mean()
+                logging(model,ave_loss,e,delta_time,mode='train')
+                if ave_loss < 0.5:
+                    break
 
 if __name__ == '__main__':
-    trainer = Trainer()
+	trainer = Trainer()
