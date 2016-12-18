@@ -59,12 +59,12 @@ class Model():
             prev_symbol = tf.stop_gradient(tf.argmax(prev, 1))
             return tf.nn.embedding_lookup(embedding, prev_symbol)
 
-	if not args.attention:
+        if not args.attention:
             outputs, last_state = seq2seq.rnn_decoder(inputs_list, self.initial_state, self.cell, loop_function=loop if infer else None, scope='rnnlm')
-	else:
-	    self.attn_length = 5
-	    self.attn_size = 32
-	    self.attention_states = build_weight([args.batch_size, self.attn_length, self.attn_size]) 
+        else:
+            self.attn_length = 5
+            self.attn_size = 32
+            self.attention_states = build_weight([args.batch_size, self.attn_length, self.attn_size]) 
             outputs, last_state = seq2seq.attention_decoder(inputs_list, self.initial_state, self.attention_states, self.cell, loop_function=loop if infer else None, scope='rnnlm')
 
         self.final_state = last_state
@@ -75,47 +75,47 @@ class Model():
                 [tf.reshape(self.targets, [-1])],
                 [tf.ones([args.batch_size * args.seq_length])],
                 args.vocab_size)
-	# average loss for each word of each timestep
+        # average loss for each word of each timestep
         self.cost = tf.reduce_sum(loss) / args.batch_size / args.seq_length
         self.lr = tf.Variable(0.0, trainable=False)
-	self.var_trainable_op = tf.trainable_variables()
+        self.var_trainable_op = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, self.var_trainable_op),
                 args.grad_clip)
         optimizer = tf.train.AdamOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, self.var_trainable_op))
-	self.initial_op = tf.global_variables_initializer()
-	self.logfile = args.log_dir+str(datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')+'.txt').replace(' ','').replace('/','')
-	self.var_op = tf.global_variables()
-	self.saver = tf.train.Saver(self.var_op,max_to_keep=5,keep_checkpoint_every_n_hours=1)
+        self.initial_op = tf.global_variables_initializer()
+        self.logfile = args.log_dir+str(datetime.datetime.strftime(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S')+'.txt').replace(' ','').replace('/','')
+        self.var_op = tf.global_variables()
+        self.saver = tf.train.Saver(self.var_op,max_to_keep=5,keep_checkpoint_every_n_hours=1)
 
     def sample(self, sess, words, vocab, num=200, start=u'我们', sampling_type=1):
 
-	state = sess.run(self.cell.zero_state(1, tf.float32))
+        state = sess.run(self.cell.zero_state(1, tf.float32))
         for word in start:
             x = np.zeros((1, 1))
             x[0, 0] = words[word]
-	    if not self.args.attention:
+            if not self.args.attention:
                 feed = {self.input_data: x, self.initial_state:state}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
-	    else:
-		# TO BE UPDATED
+            else:
+                # TO BE UPDATED
                 feed = {self.input_data: x, self.initial_state:state}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
-	    
+            
         ret = start
         word = start[-1]
         for n in range(num):
             x = np.zeros((1, 1))
             x[0, 0] = words[word]
-	    if not self.args.attention:
+            if not self.args.attention:
                 feed = {self.input_data: x, self.initial_state:state}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
-	    else:
+            else:
                 feed = {self.input_data: x, self.initial_state:state,self.attention_states:attention_states}
                 [probs, state] = sess.run([self.probs, self.final_state], feed)
             p = probs[0]
 
-	    sample = random_pick(p,word,sampling_type)
+            sample = random_pick(p,word,sampling_type)
             pred = vocab[sample]
             ret += pred
             word = pred
